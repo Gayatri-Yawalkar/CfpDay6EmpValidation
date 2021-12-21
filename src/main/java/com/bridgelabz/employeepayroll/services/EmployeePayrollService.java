@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import com.bridgelabz.employeepayroll.dto.EmployeePayrollDto;
+import com.bridgelabz.employeepayroll.exceptions.EmployeePayrollException;
 import com.bridgelabz.employeepayroll.model.EmployeePayrollData;
 @Service
 public class EmployeePayrollService implements IEmployeePayrollService{
@@ -13,11 +14,10 @@ public class EmployeePayrollService implements IEmployeePayrollService{
 	}
 	@Override
 	public EmployeePayrollData getEmployeePayrollDataById(int empId) {
-		try {
-			return employeePayrollList.get(empId-1);
-		} catch(IndexOutOfBoundsException e) {
-			return null;
-		}
+		return employeePayrollList.stream()
+				.filter(empData->empData.getEmployeeId()==empId)
+				.findFirst()
+				.orElseThrow(()->new EmployeePayrollException("Employee Not Found"));
 	}
 	@Override
 	public EmployeePayrollData createEmployeePayrollData(EmployeePayrollDto employeePayrollDto) {
@@ -28,23 +28,18 @@ public class EmployeePayrollService implements IEmployeePayrollService{
 	}
 	@Override
 	public EmployeePayrollData updateEmployeePayrollData(int empId,EmployeePayrollDto employeePayrollDto) {
-		try {
-			EmployeePayrollData empData=this.getEmployeePayrollDataById(empId);
-			empData.setName(employeePayrollDto.name);
-			empData.setSalary(employeePayrollDto.salary);
-			employeePayrollList.set(empId-1,empData);
-			return empData;
-		} catch(IndexOutOfBoundsException e) {
-			return null;
-		}
+		EmployeePayrollData empData=this.getEmployeePayrollDataById(empId);
+		empData.setName(employeePayrollDto.name);
+		empData.setSalary(employeePayrollDto.salary);
+		employeePayrollList.set(empId-1,empData);
+		return empData;
 	}
 	@Override
-	public int deleteEmployeePayrollData(int empId) {
-		try {
-			employeePayrollList.remove(empId-1);
-			return 1;
-		} catch(IndexOutOfBoundsException e) {
-			return 0;
-		}
+	public void deleteEmployeePayrollData(int empId) {
+		employeePayrollList.stream()
+		.filter(empData->empData.getEmployeeId()==empId)
+		.findFirst()
+		.orElseThrow(()->new EmployeePayrollException("Employee Not Found"));
+		employeePayrollList.remove(empId);
 	}
 }
